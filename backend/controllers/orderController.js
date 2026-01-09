@@ -79,6 +79,7 @@ exports.checkCustomerByCode = async (req, res) => {
 
 
 /* ================= CREATE ORDER ================= */
+/* ================= CREATE ORDER ================= */
 exports.createOrder = async (req, res) => {
   try {
     const { service, data, TotalPrice, paymentMethod, paymentStatus } = req.body;
@@ -102,7 +103,7 @@ exports.createOrder = async (req, res) => {
     let customer = await Customer.findOne({ customerCode: data.customerCode });
 
     if (!customer) {
-      // Only include phone if it exists to avoid null duplicates
+      // Create new customer
       const customerData = {
         customerCode: data.customerCode,
         name: data.name,
@@ -112,18 +113,28 @@ exports.createOrder = async (req, res) => {
 
       customer = await Customer.create(customerData);
     } else {
-      // Update existing customer cars and phone (if provided)
-      customer.cars = data.cars;
-      if (data.phone) customer.phone = data.phone;
-      await customer.save();
+      // Update only if there is a real change
+      let needSave = false;
+
+      if (JSON.stringify(customer.cars) !== JSON.stringify(data.cars)) {
+        customer.cars = data.cars;
+        needSave = true;
+      }
+
+      if (data.phone && data.phone !== customer.phone) {
+        customer.phone = data.phone;
+        needSave = true;
+      }
+
+      if (needSave) {
+        await customer.save(); // Only save if something changed
+      }
     }
 
     // ------------------
-    // 2️⃣ Create order
+    // 2️⃣ Create order with unique invoice
     // ------------------
-    //const invoiceNo = `INV-${Date.now()}`;
-    const invoiceNo = `INV-${Date.now()}-${Math.floor(Math.random()*1000)}`
-
+    const invoiceNo = `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     const order = await Order.create({
       invoiceNo,
@@ -149,12 +160,13 @@ exports.createOrder = async (req, res) => {
     // ------------------
     res.status(201).json({
       message: "Order saved successfully",
+      invoiceNo: populatedOrder.invoiceNo,
       data: populatedOrder,
     });
   } catch (err) {
     console.error("Create order error:", err.message);
 
-    // Handle duplicate key errors more gracefully
+    // Handle duplicate key errors more gracefully (unlikely now)
     if (err.code === 11000) {
       return res.status(409).json({
         message: "Duplicate key error. A customer with this phone already exists.",
@@ -165,6 +177,7 @@ exports.createOrder = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 
 

@@ -45,20 +45,7 @@ app.use('/api', userServiceRoute )
 app.use('/api/auth', passwordRoutes)
 
 
-//const PORT = process.env.PORT || 4000;
-//app.listen(PORT, () => console.log(`🚀 Server running on port //${PORT}`));
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`🚀 Server running on port //${PORT}`));
 
 
-//for deployment
-const PORT = process.env.PORT;
-if (!PORT) {
-  console.error("❌ PORT is not defined. Exiting.");
-  process.exit(1);
-}
-
-if (!process.env.MONGO_URI) {
-  console.error("❌ MONGO_URI is not defined. Exiting.");
-  process.exit(1);
-}
-
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
