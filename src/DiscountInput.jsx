@@ -1,9 +1,11 @@
+
+
 import React, { useState } from "react";
-import SecurityKeyModal from "./securityKeyModal";
+import SecurityKeyModal from "./SecurityKeyModal.jsx";
 
 export default function DiscountInput({ onDiscountApplied }) {
   const [showInput, setShowInput] = useState(false);
-  const [discount, setDiscount] = useState(0);
+  const [discount, setDiscount] = useState("");
   const [discountApplied, setDiscountApplied] = useState(false);
   const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
@@ -12,7 +14,7 @@ export default function DiscountInput({ onDiscountApplied }) {
   // key is now received from SecurityKeyModal
  const handleVerifyKey = async (securityKey) => {
   try {
-    const res = await fetch("http://localhost:4000/api/discount/verify", {
+    const res = await fetch("https://alkhat-carwash.onrender.com/api/discount/verify", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -78,7 +80,7 @@ if (res.ok && data.success) {
             value={discount}
             disabled={discountApplied}
             onChange={(e) =>
-              setDiscount(Math.max(0, Number(e.target.value)))
+              setDiscount((e.target.value))
             }
             style={{
               flex: 1,

@@ -46,7 +46,7 @@ export default function ServiceCard({
 
       {price !== "" && (
         <div style={{ marginTop: "6px", color: "#28a745", fontWeight:'bold' }}>
-          Price: {price}
+          Price: AED{price}
         </div>
       )}
     </div>

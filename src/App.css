@@ -4,7 +4,7 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  font-family: "Segoe UI", 'Roboto', Arial, sans-serif;
   background-color: #f3f6f9;
   color: #333;
 }
@@ -284,6 +284,25 @@ body {
   z-index: 1000;
 }
 
+/* Edit button for car list */
+.car-checkbox button {
+  margin-left: 10px;          /* space from car name */
+  padding: 5px 12px;          /* button size */
+  font-size: 0.9rem;          /* text size */
+  border-radius: 6px;         /* rounded corners */
+  border: 1px solid #26a69a;  /* border color */
+  background-color: #26a69a;  /* button color */
+  color: #fff;                /* text color */
+  cursor: pointer;            /* pointer on hover */
+  transition: all 0.2s;       /* smooth hover effect */
+}
+
+.car-checkbox button:hover {
+  background-color: #1b7c6b;  /* darker on hover */
+  border-color: #1b7c6b;      /* match border on hover */
+}
+
+
 .dialog-box {
   background: #fff;
   width: 320px;
@@ -558,6 +577,102 @@ body {
   height: 60px;
   background: #9bc59b;
 }
+.multiple-selection p {
+  font-size: 16px;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.customer-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.customer-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 15px;
+  width: 220px;
+  cursor: pointer;
+  background-color: #f9f9f9;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Hide default radio button */
+.customer-card input[type="radio"] {
+  display: none;
+}
+
+/* Hover effect */
+.customer-card:hover {
+  background-color: #e0f7fa;
+  border-color: #26a69a;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* Selected card */
+.customer-card.selected {
+  background-color: #e0f7fa;
+  border-color: #26a69a;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+/* Optional: check mark */
+.customer-card.selected::after {
+  content: "✔";
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 18px;
+  color: #26a69a;
+}
+
+/* Text styling */
+.customer-card strong {
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.customer-card p {
+  margin: 2px 0;
+  font-size: 14px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+.modal-box {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.close-btn {
+  margin-top: 15px;
+  padding: 5px 15px;
+  border: none;
+  background: #f44336;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+
 
 
 

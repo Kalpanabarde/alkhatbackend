@@ -9,9 +9,8 @@ const userSchema = new mongoose.Schema(
     role: { type: String, default: "admin" }, // default is admin
     isActive: { type: Boolean, default: true },
 
-    phoneVerified: { type: Boolean, default: false },
-    phoneOtp: { type: String },
-    phoneOtpExpires: { type: Date },
+    resetToken: String,
+    resetTokenExpiry: Date
 
     // resetPasswordToken: { type: String },
     // resetPasswordExpires: { type: Date },
@@ -20,7 +19,7 @@ const userSchema = new mongoose.Schema(
 );
 
 // Method to set OTP
-userSchema.methods.setOTP = async function (otp) {
+/**userSchema.methods.setOTP = async function (otp) {
   this.phoneOtp = otp;
   this.phoneOtpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
   await this.save();
@@ -31,6 +30,6 @@ userSchema.methods.verifyOTP = async function (otp) {
   if (this.phoneOtp !== otp) return false;
   if (Date.now() > this.phoneOtpExpires) return false;
   return true;
-};
+};**/
 
 module.exports = mongoose.model("User", userSchema);

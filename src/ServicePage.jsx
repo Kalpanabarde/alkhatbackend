@@ -20,7 +20,7 @@ export default function ServicePage() {
       try {
        
         const res = await axios.get(
-          "http://localhost:4000/api/service",
+          "https://beautiful-achievement-production.up.railway.app/api/service",
           
         );
 
@@ -45,7 +45,7 @@ export default function ServicePage() {
       return;
     }
 
-    navigate("/payment", {
+    navigate("/payment", {  replace: true, 
       state: {
         data: customer,
         service: selectedService.label,
@@ -85,11 +85,11 @@ export default function ServicePage() {
           fontWeight: "bold",
         }}>
           <img
-            src={`http://localhost:4000/icons/${selectedService.icon}`}
+            src={`https://alkhat-carwash.onrender.com/icons/${selectedService.icon}`}
             alt={selectedService.label}
             style={{ width: 50, marginRight: 15 }}
           />
-          {selectedService.label} - ₹{selectedService.price}
+          {selectedService.label} - AED{selectedService.price}
         </div>
       )}
 
@@ -102,7 +102,7 @@ export default function ServicePage() {
           <ServiceCard
             key={item._id}
             label={item.label}
-            icon={`http://localhost:4000/icons/${item.icon}`}
+            icon={`https://alkhat-carwash.onrender.com/icons/${item.icon}`}
             price={item.price}
             selected={selectedService?._id === item._id}
             onClick={() => setSelectedService(item)}

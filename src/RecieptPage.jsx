@@ -7,14 +7,23 @@ export default function ReceiptPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const {
-    service,
-    data,
-    TotalPrice,
-    paymentStatus,
-    paymentMethod,
-    invoiceNo = "N/A"
-  } = location.state || {};
+const state = location.state || {};
+
+const {
+  service,
+  data,
+  TotalPrice,
+  paymentStatus,
+  paymentMethod,
+  invoiceNo = "N/A"
+} = state;
+
+
+
+
+
+const discountAmount = Number(state.discount ?? 0);
+  
 
   const generatePDF = (action = "download") => {
     if (!data?.cars?.length) {
@@ -24,7 +33,6 @@ export default function ReceiptPage() {
 
     const doc = new jsPDF();
 
-    /* ================= HEADER ================= */
     doc.setFontSize(15);
     doc.text("Al Khat auto polishing & Accessories Fix", 14, 18);
     doc.setFontSize(11);
@@ -33,14 +41,13 @@ export default function ReceiptPage() {
     doc.text(`Invoice No: ${invoiceNo}`, 150, 18);
     doc.text(`Date: ${new Date().toLocaleString()}`, 150, 24);
 
-    /* ================= CUSTOMER ================= */
+  
     doc.setFontSize(12);
     doc.text("Customer Details", 14, 45);
     doc.setFontSize(10);
     doc.text(`Name: ${data.name}`, 14, 52);
     doc.text(`Phone: ${data.phone}`, 14, 58);
 
-    /* ================= TABLE ================= */
     doc.autoTable({
       startY: 70,
       head: [["Car Name", "Car Number"]],
@@ -55,16 +62,27 @@ export default function ReceiptPage() {
     doc.text(`Quantity: ${data.quantity}`, 14, finalY + 6);
     doc.text(`Payment Method: ${paymentMethod}`, 14, finalY + 12);
 
+
+  
+
+
+
+
     doc.setFontSize(12);
     doc.setTextColor("#28a745");
-    doc.text(`Total Amount: AED ${TotalPrice}`, 14, finalY + 22);
+    
+    if (discountAmount>0){
+     doc.text(`Discount Amount: AED${discountAmount}`, 14, finalY + 22);
+     }
 
+    doc.text(`Total Amount: AED${TotalPrice}`, 14, finalY + 30);
+  
     doc.setFontSize(11);
-    doc.setTextColor(paymentStatus === "completed" ? "#28a745" : "#f39c12");
+    doc.setTextColor(paymentStatus === "paid" ? "#28a745" : "#f39c12");
     doc.text(
-      `Payment Status: ${paymentStatus === "completed" ? "Paid" : "Pending"}`,
+      `Payment Status: ${paymentStatus === "paid" ? "Paid" : "Pending"}`,
       14,
-      finalY + 32
+      finalY + 38
     );
 
     doc.setFontSize(9);
@@ -87,7 +105,7 @@ export default function ReceiptPage() {
       <h2>🧾 Payment Receipt</h2>
       <p>
         Payment <strong>{paymentMethod}</strong> —{" "}
-        {paymentStatus === "completed" ? "Successful" : "Pending"}
+        {paymentStatus === "paid" ? "Successful" : "Pending"}
       </p>
 
       <button onClick={() => generatePDF("download")} style={btnGreen}>
@@ -100,7 +118,7 @@ export default function ReceiptPage() {
 
       <br />
 
-      <button onClick={() => navigate("/")} style={linkBtn}>
+      <button onClick={() => navigate("/", { replace: true})} style={linkBtn}>
         Back to Home
       </button>
     </div>
@@ -108,7 +126,7 @@ export default function ReceiptPage() {
 }
 
 
-/* ================= STYLES ================= */
+
 const btnGreen = {
   padding: "12px 25px",
   fontSize: "16px",
@@ -132,10 +150,4 @@ const linkBtn = {
   border: "none",
   color: "#007bff",
   cursor: "pointer"
-};
-
-const btnCredit = {
-  ...btnGreen,
-  backgroundColor: "#e7b258ff",
-  marginLeft: "20px"
 };
