@@ -1,20 +1,30 @@
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
+const nodemailer = require("nodemailer");
 const User = require("../../models/userModel");
-const sendEmail = require("../utils/sendEmail");
+
+/* -------- EMAIL TRANSPORTER -------- */
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "kalpanabarde1998@gmail.com",
+    pass: "qhwyanbotdptpnxv" // ⚠️ move to .env later
+  }
+});
 
 /* -------- TEST EMAIL -------- */
 const testEmail = async (req, res) => {
   try {
-    await sendEmail({
-      to: "kalpanabarde97@gmail.com", // replace with admin email
-      subject: "Brevo Test Email",
-      html: "<h2>Email is working ✅</h2>",
+    await transporter.sendMail({
+      from: "kalpanabarde1998@gmail.com",
+      to: "kalpanabarde97@gmail.com",
+      subject: "Test Email",
+      html: "<h2>Email is working ✅</h2>"
     });
 
     res.json({ message: "Email sent successfully" });
   } catch (err) {
-    console.error("❌ Test email error:", err);
+    console.error("Email error:", err);
     res.status(500).json({ message: "Email failed" });
   }
 };
@@ -24,79 +34,92 @@ const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
-    // 1️⃣ Check user
     const user = await User.findOne({ email });
-    if (!user)
+    if (!user) {
       return res.status(404).json({ message: "Email not registered" });
+    }
 
-    // 2️⃣ Generate reset token
-    const resetToken = crypto.randomBytes(32).toString("hex");
+    // generate token (RAW)
+    const resetToken = crypto.randomBytes(20).toString("hex");
+
+    // hash token (STORE THIS)
     const hashedToken = crypto
       .createHash("sha256")
       .update(resetToken)
       .digest("hex");
 
-    user.resetToken = hashedToken;
-    user.resetTokenExpiry = Date.now() + 15 * 60 * 1000; // 15 minutes
-    await user.save();
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
 
-    // 3️⃣ Construct reset URL
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    await user.save({ validateBeforeSave: false });
 
-    // 4️⃣ Send email via Brevo
-    await sendEmail({
-      to: user.email,
-      subject: "Reset Your Password",
-      html: `
-        <p>Click the link below to reset your password:</p>
-        <a href="${resetUrl}">${resetUrl}</a>
-        <p>This link is valid for 15 minutes.</p>
-      `,
+    const resetUrl = `http://localhost:5173/#/reset-password/${resetToken}`;
+
+    await transporter.sendMail({
+      from: "kalpanabarde1998@gmail.com",
+      to: email,
+      subject: "Password Reset",
+      text: `Click the link to reset password:\n\n${resetUrl}\n\nValid for 10 minutes`
     });
 
-    res.json({ message: "Reset email sent successfully" });
+    res.json({ success: true, message: "Reset link sent to email" });
+
   } catch (err) {
-    console.error("❌ Forgot password error:", err);
-    res.status(500).json({ message: "Failed to send reset email" });
+    console.error(err);
+    res.status(500).json({ message: "Forgot password failed" });
   }
 };
 
 /* -------- RESET PASSWORD -------- */
 const resetPassword = async (req, res) => {
   try {
-    const { token, newPassword } = req.body;
+    const { token } = req.params;      // ✅ from URL
+    const { newPassword } = req.body;
 
-    // 1️⃣ Hash the token from the request
+    if (!token) {
+      return res.status(400).json({ message: "Reset token missing" });
+    }
+
+    if (!newPassword) {
+      return res.status(400).json({ message: "Password is required" });
+    }
+
     const hashedToken = crypto
       .createHash("sha256")
       .update(token)
       .digest("hex");
 
-    // 2️⃣ Find user with valid token
     const user = await User.findOne({
-      resetToken: hashedToken,
-      resetTokenExpiry: { $gt: Date.now() },
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() }
     });
 
-    if (!user)
-      return res.status(400).json({ message: "Invalid or expired token" });
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid or expired reset token"
+      });
+    }
 
-    // 3️⃣ Update password
-    user.password = await bcrypt.hash(newPassword, 10);
-    user.resetToken = undefined;
-    user.resetTokenExpiry = undefined;
+    user.password = newPassword;
+    await user.save();
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
 
     await user.save();
 
-    res.json({ message: "Password updated successfully" });
-  } catch (error) {
-    console.error("❌ Reset password error:", error);
-    res.status(500).json({ message: "Password reset failed" });
+    res.status(200).json({
+      success: true,
+      message: "Password reset successful"
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 module.exports = {
   testEmail,
   forgotPassword,
-  resetPassword,
+  resetPassword
 };

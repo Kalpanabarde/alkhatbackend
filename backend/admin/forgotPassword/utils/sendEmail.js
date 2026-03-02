@@ -1,80 +1,34 @@
-// testSMTP.js
-require("dotenv").config({ path: '../../../.env' });
 const nodemailer = require("nodemailer");
 
+async function sendEmail() {
+  // Generate a test account
+  const testAccount = await nodemailer.createTestAccount();
 
-console.log("SMTP_HOST:", process.env.SMTP_HOST);
-console.log("SMTP_PORT:", process.env.SMTP_PORT);
-console.log("SMTP_USER:", process.env.SMTP_USER);
-console.log("EMAIL_FROM:", process.env.EMAIL_FROM);
+  console.log("Test account created:");
+  console.log("  User: %s", testAccount.user);
+  console.log("  Pass: %s", testAccount.pass);
 
-/**async function testSMTP() {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: false, // true if using port 465
-      auth: {
-        user: process.env.SMTP_USER, // must be "apikey"
-        pass: process.env.SMTP_PASS, // your SMTP key
-      },
-    });
+  // Create a transporter
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    auth: {
+      user: 'tyrique93@ethereal.email',
+      pass: '2FSC1QKEfuzqprZ1kN',
+    },
+  });
 
-    // verify connection
-    await transporter.verify();
-    console.log("✅ SMTP connection successful!");
+  // Send a test message
+  const info = await transporter.sendMail({
+    from: `alkhat@gmail.com`,
+    to: "kalpanabarde97@gmail.com",
+    subject: "OTP send to mail!",
+    text: "This message was sent using Ethereal.",
+    html: "<p>This message was sent using <b>Ethereal</b>.</p>",
+  });
 
-    // send test email
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM,  // must be verified in Brevo
-      to: process.env.EMAIL_FROM,    // send to yourself for test
-      subject: "Brevo SMTP Test Email",
-      html: "<h2>SMTP is working ✅</h2>",
-    });
-
-    console.log("✅ Test email sent successfully!");
-
-  } catch (error) {
-    console.error("❌ SMTP test failed:", error);
-  }
+  console.log("Message sent: %s", info.messageId);
+  console.log("Preview: %s", nodemailer.getTestMessageUrl(info));
 }
 
-testSMTP();**/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com", // Brave / Brevo SMTP host
-  port: 465,                     // 587 for TLS, 465 for SSL
-  secure: true,                 // true if using port 465
-  auth: {
-  user: process.env.SMTP_USER, // should be "apikey"
-  pass: process.env.SMTP_PASS// your API key stored in env variable
-  },
-});
-
-const sendEmail = async ({ to, subject, html }) => {
-  return transporter.sendMail({
-    from: process.env.EMAIL_FROM,  // must be verified in Brevo
-    to,
-    subject,
-    html,
-  });
-};
-module.exports = sendEmail;
+sendEmail().catch(console.error);

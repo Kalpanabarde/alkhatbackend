@@ -9,6 +9,6 @@ const router = express.Router();
 
 router.get("/test-email", testEmail);
 router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
+router.post("/reset-password/:token", resetPassword);
 
 module.exports = router; // ✅ use module.exports for CommonJS

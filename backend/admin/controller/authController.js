@@ -5,22 +5,24 @@ const User = require("../models/userModel");
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-   
-
-    console.log("LOGIN EMAIL:", email);
 
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password required" });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
-    console.log("USER FROM DB:", user);
+    const user = await User.findOne({
+      email: email.toLowerCase()
+    });
 
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(
+      password.trim(),
+      user.password
+    );
+
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }

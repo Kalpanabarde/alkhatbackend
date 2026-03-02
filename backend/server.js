@@ -11,7 +11,8 @@ const verifyKeyRoutes = require("./securityKey/routes/verifyRoutes");
 const keyUpdateRoutes = require("./securityKey/routes/keyUpdateRoutes");
 const serviceRoutes = require("./service/routes/serviceRoutes");
 const userServiceRoute = require("./service/routes/userServiceRoute");
-const authPasswordRoutes = require("./admin/forgotPassword/routes/authPasswordRoutes");
+const passwordRoutes = require("./admin/forgotPassword/routes/authPasswordRoutes");
+
 
 
 
@@ -42,7 +43,7 @@ app.use("/api/discount", verifyKeyRoutes);
 app.use("/api/admin", keyUpdateRoutes);
 app.use("/api/admin", serviceRoutes);
 app.use('/api', userServiceRoute )
-app.use('/api/auth', authPasswordRoutes)
+app.use('/api/auth', passwordRoutes)
 
 
 const PORT = process.env.PORT || 4000;

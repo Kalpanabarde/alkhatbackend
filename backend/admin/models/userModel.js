@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt =require("bcryptjs")
 
 const userSchema = new mongoose.Schema(
   {
@@ -8,28 +9,19 @@ const userSchema = new mongoose.Schema(
     fullName: { type: String },
     role: { type: String, default: "admin" }, // default is admin
     isActive: { type: Boolean, default: true },
+    
+    resetPasswordToken: { type: String }, // OTP for verification
+    resetPasswordExpire: { type: Date }, // Expiry time for OTP
+    isVerified: { type: Boolean, default: false }
 
-    resetToken: String,
-    resetTokenExpiry: Date
 
-    // resetPasswordToken: { type: String },
-    // resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );
 
-// Method to set OTP
-/**userSchema.methods.setOTP = async function (otp) {
-  this.phoneOtp = otp;
-  this.phoneOtpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-  await this.save();
-};
-
-// Method to verify OTP
-userSchema.methods.verifyOTP = async function (otp) {
-  if (this.phoneOtp !== otp) return false;
-  if (Date.now() > this.phoneOtpExpires) return false;
-  return true;
-};**/
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+  this.password = await bcrypt.hash(this.password, 10);
+});
 
 module.exports = mongoose.model("User", userSchema);
