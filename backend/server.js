@@ -22,7 +22,7 @@ app.use(corsConfig);
 app.use(express.json());
 
 mongoose
-  .connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/carwash")
+  .connect(process.env.MONGO_URL || "mongodb://127.0.0.1:27017/carwash")
   .then(async() => {console.log("✅ MongoDB connected")
   
   await ensureAdmin();
