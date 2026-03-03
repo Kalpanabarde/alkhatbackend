@@ -5,7 +5,9 @@ const User = require("../../models/userModel");
 
 /* -------- EMAIL TRANSPORTER -------- */
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, 
   auth: {
     user: "kalpanabarde1998@gmail.com",
     pass: "qhwyanbotdptpnxv" // ⚠️ move to .env later
