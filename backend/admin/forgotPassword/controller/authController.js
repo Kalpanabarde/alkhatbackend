@@ -53,7 +53,7 @@ const forgotPassword = async (req, res) => {
 
     await user.save({ validateBeforeSave: false });
 
-    const resetUrl = `https://test-admin-bcpka9oq5-alkhat.vercel.app/#/reset-password/${resetToken}`;
+    const resetUrl = `https://test-admin-6dk9br9la-alkhat.vercel.app/#/reset-password/${resetToken}`;
 
     await transporter.sendMail({
       from: "kalpanabarde1998@gmail.com",
