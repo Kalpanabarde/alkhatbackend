@@ -3,87 +3,92 @@ const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 const User = require("../../models/userModel");
 
-/* -------- EMAIL TRANSPORTER -------- */
+/* ================= EMAIL TRANSPORTER ================= */
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
-  secure: false, 
+  secure: false, // TLS
   auth: {
-    user: "kalpanabarde1998@gmail.com",
-    pass: "qhwyanbotdptpnxv" // ⚠️ move to .env later
-  }
+    user: process.env.EMAIL,
+    pass: process.env.EMAIL_PASSWORD,
+  },
 });
 
-/* -------- TEST EMAIL -------- */
+/* ================= TEST EMAIL ================= */
 const testEmail = async (req, res) => {
   try {
     await transporter.sendMail({
-      from: "kalpanabarde1998@gmail.com",
-      to: "kalpanabarde97@gmail.com",
+      from: process.env.EMAIL,
+      to: process.env.ADMIN_EMAIL,
       subject: "Test Email",
-      html: "<h2>Email is working ✅</h2>"
+      html: "<h2>Email service is working ✅</h2>",
     });
 
-    res.json({ message: "Email sent successfully" });
-  } catch (err) {
-    console.error("Email error:", err);
-    res.status(500).json({ message: "Email failed" });
+    return res.json({ success: true, message: "Email sent successfully" });
+  } catch (error) {
+    console.error("Test email error:", error);
+    return res.status(500).json({ message: "Email service failed" });
   }
 };
 
-/* -------- FORGOT PASSWORD -------- */
+/* ================= FORGOT PASSWORD ================= */
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "Email not registered" });
     }
 
-    // generate token (RAW)
-    const resetToken = crypto.randomBytes(20).toString("hex");
+    // Generate raw token
+    const resetToken = crypto.randomBytes(32).toString("hex");
 
-    // hash token (STORE THIS)
+    // Hash token for DB
     const hashedToken = crypto
       .createHash("sha256")
       .update(resetToken)
       .digest("hex");
 
     user.resetPasswordToken = hashedToken;
-    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
-
+    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 min
     await user.save({ validateBeforeSave: false });
 
-    const resetUrl = ` https://test-admin-lzn7dowzy-alkhat.vercel.app/#/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/#/reset-password/${resetToken}`;
 
     await transporter.sendMail({
-      from: "kalpanabarde1998@gmail.com",
+      from: process.env.EMAIL,
       to: email,
-      subject: "Password Reset",
-      text: `Click the link to reset password:\n\n${resetUrl}\n\nValid for 10 minutes`
+      subject: "Reset Your Password",
+      html: `
+        <p>You requested a password reset.</p>
+        <p>Click the link below (valid for 10 minutes):</p>
+        <a href="${resetUrl}">${resetUrl}</a>
+      `,
     });
 
-    res.json({ success: true, message: "Reset link sent to email" });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Forgot password failed" });
+    return res.json({
+      success: true,
+      message: "Password reset link sent to email",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
-/* -------- RESET PASSWORD -------- */
+/* ================= RESET PASSWORD ================= */
 const resetPassword = async (req, res) => {
   try {
-    const { token } = req.params;      // ✅ from URL
+    const { token } = req.params;
     const { newPassword } = req.body;
 
-    if (!token) {
-      return res.status(400).json({ message: "Reset token missing" });
-    }
-
-    if (!newPassword) {
-      return res.status(400).json({ message: "Password is required" });
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: "Token and password required" });
     }
 
     const hashedToken = crypto
@@ -93,35 +98,34 @@ const resetPassword = async (req, res) => {
 
     const user = await User.findOne({
       resetPasswordToken: hashedToken,
-      resetPasswordExpire: { $gt: Date.now() }
+      resetPasswordExpire: { $gt: Date.now() },
     });
 
     if (!user) {
-      return res.status(400).json({
-        message: "Invalid or expired reset token"
-      });
+      return res.status(400).json({ message: "Invalid or expired token" });
     }
 
-    user.password = newPassword;
-    await user.save();
+    // HASH PASSWORD ✅
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
 
     await user.save();
 
-    res.status(200).json({
+    return res.json({
       success: true,
-      message: "Password reset successful"
+      message: "Password reset successful",
     });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
 module.exports = {
   testEmail,
   forgotPassword,
-  resetPassword
+  resetPassword,
 };
